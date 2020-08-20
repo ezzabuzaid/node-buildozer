@@ -12,6 +12,7 @@ export interface IClaim {
 export interface ITokenClaim extends IClaim {
     role?: Roles;
     verified?: boolean;
+    name: string;
 }
 
 export interface IRefreshTokenClaim extends IClaim { }
@@ -22,7 +23,7 @@ class TokenService {
      * @param token
      * @returns {Promise<T extends ITokenClaim>}
      */
-    public decodeToken<T extends ITokenClaim>(token: string): Promise<T> {
+    public decodeToken<T extends IClaim = ITokenClaim>(token: string): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             jwt.verify(token, this.secretKey, (error, decodedToken) => {
                 if (error) {
@@ -38,7 +39,7 @@ class TokenService {
      * @param data token payload
      * @returns the encrypted token
      */
-    public generateToken<T extends ITokenClaim>(data: T, options?: jwt.SignOptions) {
+    public generateToken<T extends IClaim>(data: T, options?: jwt.SignOptions) {
         return jwt.sign(data, this.secretKey, options);
     }
 

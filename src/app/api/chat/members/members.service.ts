@@ -4,9 +4,10 @@ import sharedFolder from '@api/uploads/shared-folder/shared-folder.service';
 import { PrimaryKey } from '@lib/mongoose';
 import { Room } from '../rooms';
 import { AppUtils } from '@core/utils';
-import { locate } from '@lib/locator';
+import { locate, Singelton } from '@lib/locator';
 import { MessagesService } from '../messages';
 
+@Singelton()
 export class RoomMembersService extends CrudService<RoomMember> {
     constructor() {
         super(new CrudDao(RoomMember), {
