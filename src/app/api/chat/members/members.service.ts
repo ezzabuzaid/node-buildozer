@@ -40,7 +40,7 @@ export class RoomMembersService extends CrudService<RoomMember> {
         });
         for (const document of result.data.list) {
             if (document.room) {
-                document.room['lastMessage'] = await locate(MessagesService).getFirstMessage(document.room);
+                document.room['lastMessage'] = await locate(MessagesService).getLastMessage(document.room);
                 if (document.room['single']) {
                     const names = (document.room['name'] as string).split(',');
                     document.room['name'] = names[+!names.indexOf(userName)];
