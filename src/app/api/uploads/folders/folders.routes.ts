@@ -26,8 +26,8 @@ export class FoldersRoutes extends CrudRouter<FoldersSchema> {
     }
 
     @HttpGet('user/shared')
-    public async getUserSharedolders(req: Request) {
-        const { id } = await tokenService.decodeToken(req.headers.authorization);
+    public async getUserSharedolders(@FromHeaders('authorization') authorization: string) {
+        const { id } = await tokenService.decodeToken(authorization);
         const folders = await sharedFolderService.getUserFolders(id, true);
         return new Responses.Ok(folders.data);
     }
