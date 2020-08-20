@@ -112,9 +112,9 @@ class ResetPasswordDto extends PrimaryIDValidator {
 export class RefreshToken {
     public token: string;
     public refreshToken: string;
-    constructor(user_id: PrimaryKey, role: string, verified: boolean) {
+    constructor(user_id: PrimaryKey, role: string, verified: boolean, name: string) {
         const portalHelper = locate(PortalHelper);
-        this.token = portalHelper.generateToken(user_id, role, verified);
+        this.token = portalHelper.generateToken(user_id, role, verified, name);
         this.refreshToken = portalHelper.generateRefreshToken(user_id);
     }
 }
@@ -137,7 +137,8 @@ export class PortalRouter {
             projection: {
                 password: 1,
                 role: 1,
-                email: 1
+                email: 1,
+                username: 1
             }
         });
 
@@ -164,7 +165,7 @@ export class PortalRouter {
             from: 'admin@admin.com',
             to: user.email,
         });
-        return new Responses.Ok(new RefreshToken(user.id, user.role, user.emailVerified));
+        return new Responses.Ok(new RefreshToken(user.id, user.role, user.emailVerified, user.username));
     }
 
     @HttpPost(Constants.Endpoints.LOGOUT)
@@ -193,7 +194,7 @@ export class PortalRouter {
                     const { data: user } = await this.usersService.one({ _id: decodedRefreshToken.id });
 
                     await this.sessionsService.updateById(session.data.id, { updatedAt: new Date().toISOString() });
-                    return new Responses.Ok(new RefreshToken(user.id, user.role, user.emailVerified));
+                    return new Responses.Ok(new RefreshToken(user.id, user.role, user.emailVerified, user.username));
                 }
             }
         } catch (error) {

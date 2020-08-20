@@ -9,8 +9,8 @@ export class PortalHelper {
         return tokenService.generateToken<IRefreshTokenClaim>({ id }, { expiresIn: '12h' });
     }
 
-    public generateToken(id: PrimaryKey, role: string, verified: boolean) {
-        return tokenService.generateToken({ id, role, verified }, { expiresIn: '6h' });
+    public generateToken(id: PrimaryKey, role: string, verified: boolean, name: string) {
+        return tokenService.generateToken({ id, role, verified, name }, { expiresIn: '6h' });
     }
 
     public generatePinCode(length = 6) {
