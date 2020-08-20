@@ -4,7 +4,9 @@ import { strictAssign, validatePayload } from '@lib/validation';
 import { locateSocketIO } from '@shared/common';
 import { tokenService } from '@shared/identity';
 import { IsInt, IsMongoId, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import messagesService from './messages/messages.service';
+import { MessagesService } from './messages';
+import { locate } from '@lib/locator';
+import { RoomMembersService } from './members';
 
 interface IRoom {
     id: string;
@@ -53,10 +55,10 @@ export function startChatSocket() {
         socket.on('error', () => {
             leave(null, 'Error');
         });
-        socket.once('Leave', async (room: IRoom) => {
+        socket.on('Leave', async (room: IRoom) => {
             leave(room.id, 'Leave');
         });
-        socket.once('Join', async (room: IRoom) => {
+        socket.on('Join', async (room: IRoom) => {
             log.debug('New Joiner => ', room.id);
             socket.join(room.id);
         });
@@ -65,14 +67,21 @@ export function startChatSocket() {
             const payload = new MessagePayload(message);
             try {
                 await validatePayload(payload);
-                const createdMessage = await messagesService.create({
+                const createdMessage = await locate(MessagesService).create({
                     room: payload.id,
                     user: id,
                     text: payload.text,
                     order: payload.order
                 });
+                const members = await locate(RoomMembersService).all({ room: payload.id });
+                const users = members.data.list.map(member => member.user)
+                const recipientUsers = users.filter(user => user !== id);
+                //TODO: cache the users 
+                recipientUsers.forEach((user) => {
+                    io.sockets.to(user as any).emit('Message', createdMessage.data);
+                })
                 socket.emit(`saved_${ message.timestamp }`, message.id);
-                io.sockets.to(payload.id as any).emit('Message', createdMessage.data);
+                // io.sockets.to(payload.id as any).emit('Message', createdMessage.data);
                 log.debug('New Message => ', createdMessage.data);
             } catch (error) {
                 console.log('MessageValidationError => ', error);
