@@ -13,6 +13,8 @@ declare global {
             JWT_SECRET_KEY: string
             NODE_ENV: string;
             CLIENT_RESETPASSWORD_URL: string;
+            privateVapidKey: string;
+            publicVapidKey: string;
         }
     }
 }

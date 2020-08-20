@@ -15,6 +15,7 @@ import hpp = require('hpp');
 import morgan = require('morgan');
 import { envirnoment } from '@environment/env';
 const log = new Logger('Application');
+import webpush from 'web-push';
 
 export class Application {
     public application = express();
@@ -23,6 +24,7 @@ export class Application {
         this.configure();
         this.setupLocalization();
         this.populateRoutes();
+        webpush.setVapidDetails('mailto:ezzabuzaid@gmail.com', envirnoment.get('publicVapidKey'), envirnoment.get('privateVapidKey'));
     }
 
     /**
