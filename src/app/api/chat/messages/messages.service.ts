@@ -23,5 +23,14 @@ export class MessagesService extends CrudService<Message> {
         return this.dao.fetchAll({ room }).limit(1).then(docs => docs[0]);
     }
 
+
+    public search(text: string, options: Pagination) {
+        return this.all({
+            text: {
+                $regex: text,
+                $options: 'i'
+            }
+        }, options);
+    }
 }
 
