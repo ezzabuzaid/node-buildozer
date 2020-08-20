@@ -1,18 +1,20 @@
 import { CrudService, CrudDao } from '@shared/crud';
-import { RoomMemberSchema } from './members.model';
+import { RoomMember } from './members.model';
 import sharedFolder from '@api/uploads/shared-folder/shared-folder.service';
 import { PrimaryKey } from '@lib/mongoose';
-import { RoomSchema } from '../rooms';
+import { Room } from '../rooms';
 import { AppUtils } from '@core/utils';
+import { locate } from '@lib/locator';
+import { MessagesService } from '../messages';
 
-export class RoomMembersService extends CrudService<RoomMemberSchema> {
+export class RoomMembersService extends CrudService<RoomMember> {
     constructor() {
-        super(new CrudDao(RoomMemberSchema), {
+        super(new CrudDao(RoomMember), {
             create: {
                 async post(member) {
                     const populatedMember = await member.populate('room').execPopulate();
                     await sharedFolder.create({
-                        folder: (populatedMember.room as unknown as RoomSchema).folder,
+                        folder: (populatedMember.room as unknown as Room).folder,
                         shared: true,
                         user: member.user as any
                     });
@@ -21,9 +23,9 @@ export class RoomMembersService extends CrudService<RoomMemberSchema> {
         });
     }
 
-    async getMemberRooms(id: PrimaryKey, single: boolean) {
+    async getUserRooms(user_id: PrimaryKey, userName?: string, single = false) {
         const result = await this.all({
-            user: id
+            user: user_id
         }, {
             populate: {
                 path: 'room',
@@ -33,8 +35,18 @@ export class RoomMembersService extends CrudService<RoomMemberSchema> {
             },
             projection: {
                 room: 1,
-            }
+            },
+            lean: true
         });
+        for (const document of result.data.list) {
+            if (document.room) {
+                document.room['lastMessage'] = await locate(MessagesService).getFirstMessage(document.room);
+                if (document.room['single']) {
+                    const names = (document.room['name'] as string).split(',');
+                    document.room['name'] = names[+!names.indexOf(userName)];
+                }
+            }
+        }
         return {
             ...result.data,
             list: result.data.list.map(({ room }) => room).filter(AppUtils.isTruthy)
@@ -64,4 +76,3 @@ export class RoomMembersService extends CrudService<RoomMemberSchema> {
     }
 }
 
-export default new RoomMembersService();
