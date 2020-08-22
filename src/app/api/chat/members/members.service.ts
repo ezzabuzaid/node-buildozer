@@ -37,6 +37,9 @@ export class RoomMembersService extends CrudService<RoomMember> {
             projection: {
                 room: 1,
             },
+            sort: {
+                updatedAt: 'ascending'
+            },
             lean: true
         });
         for (const document of result.data.list) {
