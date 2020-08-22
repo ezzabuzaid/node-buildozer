@@ -1,5 +1,5 @@
 import { Responses, SuccessResponse } from '@core/response';
-import { FromBody, FromQuery, HttpGet, HttpPost, Route, RemoveMiddleware } from '@lib/restful';
+import { FromBody, FromQuery, HttpGet, HttpPost, Route, RemoveMiddleware, FromParams } from '@lib/restful';
 import { CrudRouter, Pagination } from '@shared/crud';
 import { EmailService } from '@shared/email';
 import { identity, AllowAnonymous } from '@shared/identity';
@@ -110,9 +110,12 @@ export class UsersRouter extends CrudRouter<UsersSchema, UserService> {
     public async isUsernameExist(@FromQuery(SearchForUserDto) query: SearchForUserDto) {
         const { username } = query;
         const result = await this.service.one({ username });
-        if (result.hasError) {
-            return new Responses.BadRequest(result.message);
-        }
+        return new Responses.Ok(result.data);
+    }
+
+    @HttpGet('room/:id')
+    public async getAllUsersExceptRoomUsers(@FromParams('id') room) {
+        const result = await this.service.getAllUsersExceptRoomUsers(room);
         return new Responses.Ok(result.data);
     }
 

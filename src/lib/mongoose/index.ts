@@ -32,7 +32,12 @@ export function generateModelMetadataKey(target: any) {
 
 export type Projection<T> = Partial<{ [key in keyof Payload<T>]: 1 | 0 }>;
 export type SortDirection = 'asc' | 'desc' | 'ascending' | 'descending';
-export type IColumnSort<T> = { [ket in keyof T]?: SortDirection };
+export type IColumnSort<T> = {
+    [ket in keyof (T & {
+        createdAt: string;
+        updatedAt: string;
+    })]?: SortDirection
+};
 export type PrimaryKey = Types.ObjectId;
 export type ForeignKey = Types.ObjectId;
 export const PrimaryKey = Types.ObjectId;
