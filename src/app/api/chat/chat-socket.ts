@@ -7,6 +7,7 @@ import { IsInt, IsMongoId, IsNotEmpty, IsNumber, IsString } from 'class-validato
 import { MessagesService } from './messages';
 import { locate } from '@lib/locator';
 import { RoomMembersService } from './members';
+import { RoomsService } from './rooms';
 
 interface IRoom {
     id: string;
@@ -47,7 +48,6 @@ export function startChatSocket() {
         function leave(id, type) {
             id ? socket.leave(id) : socket.leaveAll();
             log.debug(type);
-            log.warn(socket.rooms);
         }
         socket.on('disconnect', () => {
             leave(null, 'Disconnect');
@@ -75,11 +75,11 @@ export function startChatSocket() {
                 });
                 const members = await locate(RoomMembersService).all({ room: payload.id });
                 const users = members.data.list.map(member => member.user)
-                const recipientUsers = users.filter(user => user !== id);
                 //TODO: cache the users 
-                recipientUsers.forEach((user) => {
+                users.forEach((user) => {
                     io.sockets.to(user as any).emit('Message', createdMessage.data);
-                })
+                });
+                await locate(RoomsService).updateById(createdMessage.data.room, { updatedAt: new Date().toISOString() })
                 socket.emit(`saved_${ message.timestamp }`, message.id);
                 // io.sockets.to(payload.id as any).emit('Message', createdMessage.data);
                 log.debug('New Message => ', createdMessage.data);
