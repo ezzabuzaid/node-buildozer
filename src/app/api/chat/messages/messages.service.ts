@@ -20,7 +20,10 @@ export class MessagesService extends CrudService<Message> {
     }
 
     getLastMessage(room: PrimaryKey) {
-        return this.dao.fetchAll({ room }).limit(1).then(docs => docs[0]);
+        return this.dao
+            .fetchAll({ room }, { sort: { createdAt: 'desc' } })
+            .limit(1)
+            .then(docs => docs[0]);
     }
 
 
